@@ -7,9 +7,9 @@ const app = express();
 app.use(express.json());
 
 app.get(
-  "/cryptos/profile/:cryptoId",
+  "/cryptos/profile/:id",
   async (req: Request, res: Response, _next: NextFunction) => {
-    const cryptoId = req.params?.cryptoId;
+    const cryptoId = req.params?.id;
     if (!cryptoId)
       return res.json({
         message: "Missing request cryptoId param",
@@ -35,9 +35,9 @@ app.get(
 );
 
 app.get(
-  "/cryptos/market-data/:cryptoId",
+  "/cryptos/market-data/:id",
   async (req: Request, res: Response, _next: NextFunction) => {
-    const cryptoId = req.params?.cryptoId;
+    const cryptoId = req.params?.id;
     if (!cryptoId)
       return res.json({
         message: "Missing request cryptoId param",
