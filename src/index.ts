@@ -8,7 +8,8 @@ config();
 
 const PORT = process.env.PORT;
 const server = createServer(app);
-const io = new Server(server);
+
+export const io = new Server(server);
 
 io.on("connection", (socket) => {
   socket.on("connect_error", () => {
@@ -27,33 +28,49 @@ server.listen(PORT, () => {
   console.log(`- App Environment:: ${PORT}`);
 });
 
-const fetchCryptoPriceLists = async () => {
-  const options = {
+export const options = (url: string) => {
+  return {
     method: "GET",
-    url: process.env.CRYPTO_LIST_URL,
+    url: url,
     headers: {
       accept: "application/json",
+      "x-messari-api-key": process.env.API_KEY,
     },
   };
-  const response = await axios.request(options);
-  if (response.status !== 200)
-    console.log(`Error fetching crypto list with code:: ${response.status}`);
+};
 
-  const cryptoPriceListData = response.data.data;
+const fetchCryptoPriceLists = async () => {
+  try {
+    const response = await axios.request(
+      options(
+        "https://data.messari.io/api/v1/assets?fields=id,slug,symbol,metrics/market_data/price_usd"
+      )
+    );
+    if (response.status !== 200)
+      console.log(`Error fetching crypto list with code:: ${response.status}`);
 
-  const cryptoPriceLists = cryptoPriceListData.map((list: any) => {
-    return {
-      id: list.id,
-      name: list.slug,
-      symbol: list.symbol,
-      price: list.metrics.market_data.price_usd,
-    };
-  });
+    const cryptoPriceListData = response.data.data;
 
-  io.emit("crypto", cryptoPriceLists);
+    const cryptoPriceLists = cryptoPriceListData.map((list: any) => {
+      return {
+        id: list.id,
+        name: list.slug,
+        symbol: list.symbol,
+        price: list.metrics.market_data.price_usd,
+      };
+    });
+
+    io.emit("crypto", cryptoPriceLists);
+  } catch (error: any) {
+    console.log(error);
+    io.emit("crypto", {
+      error: true,
+      msg: "Error fetching crypto price lists from api",
+    });
+  }
 };
 
 /** FETCH PRICES EVERY FIVE SECONDS */
 setInterval(() => {
   fetchCryptoPriceLists();
-}, 5000);
+}, 20000);
