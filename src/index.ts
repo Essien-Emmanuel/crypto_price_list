@@ -27,7 +27,7 @@ server.listen(PORT, () => {
   console.log(`- App Environment:: ${PORT}`);
 });
 
-const fetchCryptoList = async () => {
+const fetchCryptoPriceLists = async () => {
   const options = {
     method: "GET",
     url: process.env.CRYPTO_LIST_URL,
@@ -39,9 +39,21 @@ const fetchCryptoList = async () => {
   if (response.status !== 200)
     console.log(`Error fetching crypto list with code:: ${response.status}`);
 
-  const data = response.data;
-  // console.log(JSON.stringify(response.data, null, 2));
-  console.log(data);
+  const cryptoPriceListData = response.data.data;
+
+  const cryptoPriceLists = cryptoPriceListData.map((list: any) => {
+    return {
+      id: list.id,
+      name: list.slug,
+      symbol: list.symbol,
+      price: list.metrics.market_data.price_usd,
+    };
+  });
+
+  io.emit("crypto", cryptoPriceLists);
 };
 
-fetchCryptoList();
+/** FETCH PRICES EVERY FIVE SECONDS */
+setInterval(() => {
+  fetchCryptoPriceLists();
+}, 5000);
