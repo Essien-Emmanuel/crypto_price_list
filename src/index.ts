@@ -2,7 +2,7 @@ import { config } from "dotenv";
 import { createServer } from "http";
 import axios from "axios";
 import { Server } from "socket.io";
-import { app } from "./app";
+import { BASE_URL, app } from "./app";
 
 config();
 
@@ -42,9 +42,7 @@ export const options = (url: string) => {
 const fetchCryptoPriceLists = async () => {
   try {
     const response = await axios.request(
-      options(
-        "https://data.messari.io/api/v1/assets?fields=id,slug,symbol,metrics/market_data/price_usd"
-      )
+      options(`${BASE_URL}?fields=id,slug,symbol,metrics/market_data/price_usd`)
     );
     if (response.status !== 200)
       console.log(`Error fetching crypto list with code:: ${response.status}`);
